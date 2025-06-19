@@ -1,13 +1,13 @@
 import express from 'express'
 import 'dotenv/config'
-// import { drizzle } from "drizzle-orm/node-postgres";
+// import { drizzle } from 'drizzle-orm/node-postgres'
 
 const app = express()
 
 // const db = drizzle({
-//   connection: process.env.DATABASE_URL!,
-//   casing: "snake_case",
-// });
+//     connection: process.env.DATABASE_URL!,
+//     casing: 'snake_case',
+// })
 
 app.use(express.json())
 
