@@ -9,27 +9,27 @@ datasource db {
 }
 
 model Event {
-  id         Int       @id @default(autoincrement())
-  userId    Int @map("user_id")
-  eventType String    @db.VarChar(100) @map("event_type")
-  eventDate DateTime  @db.Date @map("event_date")
-  nextReminderAt DateTime @db.Timestamptz(6) @map("next_reminder_at")
-  createdAt DateTime  @default(now()) @db.Timestamptz(6) @map("created_at")
-  updatedAt DateTime  @updatedAt @db.Timestamptz(6) @map("updated_at")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  eventType      String   @map("event_type") @db.VarChar(100)
+  eventDate      DateTime @map("event_date") @db.Date
+  nextReminderAt DateTime @map("next_reminder_at") @db.Timestamptz(6)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("events")
 }
 
 model User {
-  id         Int       @id @default(autoincrement())
-  firstName String    @db.VarChar(50) @map("first_name")
-  lastName  String    @db.VarChar(50) @map("last_name")
-  email      String    @unique() @db.VarChar(255)
-  timezone   String
-  createdAt DateTime  @default(now()) @db.Timestamptz(6) @map("created_at")
-  updatedAt DateTime  @updatedAt @db.Timestamptz(6) @map("updated_at")
-  events     Event[]
+  id        Int      @id @default(autoincrement())
+  firstName String   @map("first_name") @db.VarChar(50)
+  lastName  String   @map("last_name") @db.VarChar(50)
+  email     String   @unique @db.VarChar(255)
+  timezone  String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  events    Event[]
 
   @@map("users")
 }

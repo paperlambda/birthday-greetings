@@ -1,6 +1,6 @@
 # Birthday Greetings
 
-A Node.js application with integrate BullMQ and Prisma
+A Node.js application with integrated BullMQ and Prisma
 
 ## Installation
 
