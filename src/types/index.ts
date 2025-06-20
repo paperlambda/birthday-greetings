@@ -14,6 +14,8 @@ export type PrismaClientTx = Omit<
 
 export interface IUserRepository {
     create(userPayload: Prisma.UserCreateInput): Promise<User>
+    getById(userId: number): Promise<User | null>
+    delete(userId: number): Promise<void>
 }
 
 export interface IEventRepository {

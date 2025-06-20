@@ -58,4 +58,52 @@ describe('user.repository', () => {
             )
         })
     })
+
+    describe('getById', () => {
+        test('successfully retrieves a user by id', async () => {
+            const user = {
+                id: 1,
+                email: 'user@example.com',
+                firstName: 'Test',
+                lastName: 'User',
+                timezone: 'UTC',
+            }
+            prisma.user.findUniqueOrThrow.mockResolvedValueOnce(user)
+            const userRepository = new UserRepository(prisma)
+            const result = await userRepository.getById(1)
+            expect(result).toStrictEqual(user)
+            expect(prisma.user.findUniqueOrThrow).toHaveBeenCalledWith({
+                where: { id: 1 },
+            })
+        })
+
+        test('throws error when user not found', async () => {
+            const notFoundError = new Error('No user found')
+            prisma.user.findUniqueOrThrow.mockRejectedValueOnce(notFoundError)
+            const userRepository = new UserRepository(prisma)
+            await expect(userRepository.getById(999)).rejects.toThrow(
+                'No user found'
+            )
+        })
+    })
+
+    describe('delete', () => {
+        test('successfully deletes a user', async () => {
+            prisma.user.delete.mockResolvedValueOnce({ id: 1 })
+            const userRepository = new UserRepository(prisma)
+            await expect(userRepository.delete(1)).resolves.toBeUndefined()
+            expect(prisma.user.delete).toHaveBeenCalledWith({
+                where: { id: 1 },
+            })
+        })
+
+        test('throws error when delete fails', async () => {
+            const deleteError = new Error('Delete failed')
+            prisma.user.delete.mockRejectedValueOnce(deleteError)
+            const userRepository = new UserRepository(prisma)
+            await expect(userRepository.delete(1)).rejects.toThrow(
+                'Delete failed'
+            )
+        })
+    })
 })

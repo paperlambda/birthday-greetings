@@ -15,7 +15,7 @@ model Event {
   eventDate DateTime  @db.Date @map("event_date")
   createdAt DateTime  @default(now()) @db.Timestamptz(6) @map("created_at")
   updatedAt DateTime  @updatedAt @db.Timestamptz(6) @map("updated_at")
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("events")
 }

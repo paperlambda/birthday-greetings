@@ -7,5 +7,6 @@ const router = Router()
 const userController = new UserController()
 
 router.post('/', validateBody(createUserDTO), userController.createUser)
+router.delete('/:id', userController.deleteUser)
 
 export default router

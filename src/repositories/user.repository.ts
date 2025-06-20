@@ -24,4 +24,16 @@ export class UserRepository implements IUserRepository {
             throw err
         }
     }
+
+    async getById(userId: number): Promise<User | null> {
+        return this.prisma.user.findUniqueOrThrow({
+            where: { id: userId },
+        })
+    }
+
+    async delete(userId: number): Promise<void> {
+        await this.prisma.user.delete({
+            where: { id: userId },
+        })
+    }
 }
