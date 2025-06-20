@@ -10,8 +10,22 @@ services:
             - postgres_data:/var/lib/postgresql/data
         networks:
             - app-network
+    redis:
+        image: redis:8.0.2-alpine
+        container_name: redis-dev
+        restart: always
+        command: ['redis-server','--appendonly', 'yes','--maxmemory-policy', 'noeviction']
+        volumes:
+            -  redis_data:/data
+        ports:
+            - '${REDIS_PORT}:6379'
+        networks:
+            - app-network
+        env_file:
+            - .env
 networks:
     app-network:
         driver: bridge
 volumes:
     postgres_data:
+    redis_data:

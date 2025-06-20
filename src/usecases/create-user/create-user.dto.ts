@@ -1,6 +1,11 @@
 import { z } from 'zod/v4'
 import { isValidTimezone } from '@/utils/timezone'
-import { EventType } from '@/types'
+import { EventTypes } from '@/types'
+
+const eventDTO = z.object({
+    eventDate: z.iso.date(),
+    eventType: z.enum(EventTypes),
+})
 
 export const createUserDTO = z.object({
     firstName: z
@@ -19,17 +24,20 @@ export const createUserDTO = z.object({
             message:
                 'Invalid timezone format. Use valid formats e.g Asia/Jakarta, EST, UTC+1',
         }),
-    eventDate: z.iso.date(),
-    eventType: z.enum(EventType),
+    events: z.array(eventDTO).min(1, 'At least one event is required'),
 })
+
+export interface EventDTO {
+    eventType: string
+    eventDate: string
+}
 
 export interface CreateUserDTO {
     firstName: string
     lastName: string
     email: string
     timezone: string
-    eventType: string
-    eventDate: string
+    events: EventDTO[]
 }
 
 export interface CreateUserResponseDTO {
@@ -37,8 +45,7 @@ export interface CreateUserResponseDTO {
     firstName: string
     lastName: string
     email: string
-    eventType: string
-    eventDate: string
+    events: EventDTO[]
     timezone: string
     createdAt: string
     updatedAt: string

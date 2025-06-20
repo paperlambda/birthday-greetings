@@ -12,6 +12,16 @@ export type PrismaClientTx = Omit<
     | '$extends'
 >
 
+export type EventWithUser = Prisma.EventGetPayload<{
+    include: {
+        user: {
+            select: {
+                timezone: true
+            }
+        }
+    }
+}>
+
 export interface IUserRepository {
     create(userPayload: Prisma.UserCreateInput): Promise<User>
     getById(userId: number): Promise<User | null>
@@ -19,10 +29,14 @@ export interface IUserRepository {
 }
 
 export interface IEventRepository {
-    create(eventPayload: Prisma.EventCreateInput): Promise<Event>
+    createMany(
+        eventPayload: Prisma.EventCreateManyInput[]
+    ): Promise<Prisma.BatchPayload>
+
+    getByNextReminderAtBetween(startDate: Date, endDate: Date): Promise<Event[]>
 }
 
-export enum EventType {
+export enum EventTypes {
     BIRTHDAY = 'birthday',
     ANNIVERSARY = 'anniversary',
 }

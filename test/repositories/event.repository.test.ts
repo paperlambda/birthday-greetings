@@ -2,51 +2,58 @@ import { describe, expect, test, beforeEach, vi } from 'vitest'
 import prisma from '@/libs/__mocks__/prisma'
 import { Prisma } from '@/generated/prisma'
 import { EventRepository } from '@/repositories/event.repository'
-import { EventType } from '../../src/types'
+import { EventTypes } from '../../src/types'
 import { DateTime } from 'luxon'
+import { getNextAnnualReminderTime } from '../../src/utils/get-next-annual-reminder-time'
 
 describe('EventRepository', () => {
     beforeEach(() => {
         vi.restoreAllMocks()
     })
 
-    describe('create', () => {
+    describe('createMany', () => {
         test('successfully creates an event', async () => {
-            const newEvent: Prisma.EventCreateInput = {
-                eventType: EventType.BIRTHDAY,
-                eventDate: DateTime.fromISO('1996-09-12').toJSDate(),
-                user: {
-                    connect: {
-                        id: 1,
-                    },
-                },
+            const eventDate = DateTime.fromISO('1996-09-12')
+            const newEvent: Prisma.EventCreateManyInput = {
+                eventType: EventTypes.BIRTHDAY,
+                userId: 0,
+                eventDate: eventDate.toJSDate(),
+                nextReminderAt: getNextAnnualReminderTime(
+                    eventDate.toJSDate(),
+                    'Asia/Jakarta',
+                    9
+                ),
             }
-            prisma.event.create.mockResolvedValueOnce({ ...newEvent, id: 1 })
+            prisma.event.createMany.mockResolvedValueOnce({
+                count: 1,
+            })
 
             const eventRepository = new EventRepository(prisma)
-            const event = await eventRepository.create(newEvent)
+            const result = await eventRepository.createMany([newEvent])
 
-            expect(event).toStrictEqual({ ...newEvent, id: 1 })
+            expect(result).toStrictEqual({ count: 1 })
         })
 
-        test('throws error when Prisma create fails', async () => {
-            const newEvent: Prisma.EventCreateInput = {
-                eventType: EventType.BIRTHDAY,
-                eventDate: DateTime.fromISO('1996-09-12').toJSDate(),
-                user: {
-                    connect: {
-                        id: 0,
-                    },
-                },
+        test('throws error when Prisma createMany fails', async () => {
+            const eventDate = DateTime.fromISO('1996-09-12')
+            const newEvent: Prisma.EventCreateManyInput = {
+                eventType: EventTypes.BIRTHDAY,
+                userId: 0,
+                eventDate: eventDate.toJSDate(),
+                nextReminderAt: getNextAnnualReminderTime(
+                    eventDate.toJSDate(),
+                    'Asia/Jakarta',
+                    9
+                ),
             }
-            const genericError = new Error('Prisma create failure')
-            prisma.event.create.mockRejectedValueOnce(genericError)
+            const genericError = new Error('Prisma createMany failure')
+            prisma.event.createMany.mockRejectedValueOnce(genericError)
 
             const eventRepository = new EventRepository(prisma)
 
-            await expect(eventRepository.create(newEvent)).rejects.toThrow(
-                'Prisma create failure'
-            )
+            await expect(
+                eventRepository.createMany([newEvent])
+            ).rejects.toThrow('Prisma createMany failure')
         })
     })
 })

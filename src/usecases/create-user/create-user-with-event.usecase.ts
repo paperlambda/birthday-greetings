@@ -1,12 +1,15 @@
+import 'dotenv/config'
 import { UserRepository } from '@/repositories/user.repository'
-import { Event, PrismaClient, User } from '@/generated/prisma'
+import { PrismaClient, User } from '@/generated/prisma'
 import {
     CreateUserDTO,
     CreateUserResponseDTO,
+    EventDTO,
 } from '@/usecases/create-user/create-user.dto'
 import { EventRepository } from '@/repositories/event.repository'
-import { EventType } from '@/types'
+import { EventTypes } from '@/types'
 import { DateTime } from 'luxon'
+import { getNextAnnualReminderTime } from '@/utils/get-next-annual-reminder-time'
 
 export class CreateUserWithEventUseCase {
     private prisma: PrismaClient
@@ -26,21 +29,29 @@ export class CreateUserWithEventUseCase {
                 lastName: payload.lastName,
                 timezone: payload.timezone,
             })
-            const event = await eventRepository.create({
-                eventType: EventType.BIRTHDAY,
-                eventDate: DateTime.fromISO(payload.eventDate).toJSDate(),
-                user: {
-                    connect: {
-                        id: user.id,
-                    },
-                },
+
+            const events = payload.events.map((ev) => {
+                const eventDate = DateTime.fromISO(ev.eventDate).toJSDate()
+                const nextReminderAt = getNextAnnualReminderTime(
+                    eventDate,
+                    user.timezone,
+                    parseInt(process.env.APP_REMINDER_HOUR) || 9
+                )
+                return {
+                    userId: user.id,
+                    eventType: ev.eventType as EventTypes,
+                    eventDate: eventDate,
+                    nextReminderAt: nextReminderAt,
+                }
             })
 
-            return this.toResponse(user, event)
+            await eventRepository.createMany(events)
+
+            return this.toResponse(user, payload.events)
         })
     }
 
-    private toResponse(user: User, event: Event): CreateUserResponseDTO {
+    private toResponse(user: User, events: EventDTO[]): CreateUserResponseDTO {
         return {
             id: user.id,
             email: user.email,
@@ -49,10 +60,7 @@ export class CreateUserWithEventUseCase {
             timezone: user.timezone,
             createdAt: user.createdAt.toISOString(),
             updatedAt: user.updatedAt.toISOString(),
-            eventType: event.eventType,
-            eventDate: DateTime.fromJSDate(event.eventDate).toFormat(
-                'yyyy-MM-dd'
-            ),
+            events: events,
         }
     }
 }

@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { DateTime } from 'luxon'
 import prisma from '@/libs/__mocks__/prisma'
 import { CreateUserWithEventUseCase } from '@/usecases/create-user/create-user-with-event.usecase'
-import { EventType } from '@/types'
+import { EventTypes } from '@/types'
+import { getNextAnnualReminderTime } from '../../src/utils/get-next-annual-reminder-time'
 
 describe('create-user-with-event.usecase', () => {
     beforeEach(() => {
@@ -16,8 +17,12 @@ describe('create-user-with-event.usecase', () => {
                 lastName: 'Doe',
                 email: 'john.doe@example.com',
                 timezone: 'Asia/Jakarta',
-                eventDate: '2023-12-31',
-                eventType: EventType.BIRTHDAY,
+                events: [
+                    {
+                        eventDate: '2023-12-31',
+                        eventType: EventTypes.BIRTHDAY,
+                    },
+                ],
             }
 
             const fakeUser = {
@@ -30,16 +35,8 @@ describe('create-user-with-event.usecase', () => {
                 updatedAt: new Date('2023-01-01T00:00:00.000Z'),
             }
 
-            const fakeEvent = {
-                id: 1,
-                eventType: EventType.BIRTHDAY,
-                eventDate: new Date('2023-12-31'),
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            }
-
             prisma.user.create.mockResolvedValueOnce(fakeUser)
-            prisma.event.create.mockResolvedValueOnce(fakeEvent)
+            prisma.event.createMany.mockResolvedValueOnce({ count: 1 })
 
             prisma.$transaction.mockImplementation((callback) =>
                 callback(prisma)
@@ -56,10 +53,7 @@ describe('create-user-with-event.usecase', () => {
                 timezone: fakeUser.timezone,
                 createdAt: fakeUser.createdAt.toISOString(),
                 updatedAt: fakeUser.updatedAt.toISOString(),
-                eventType: fakeEvent.eventType,
-                eventDate: DateTime.fromJSDate(fakeEvent.eventDate).toFormat(
-                    'yyyy-MM-dd'
-                ),
+                events: payload.events,
             })
 
             expect(prisma.$transaction).toHaveBeenCalledTimes(1)
@@ -71,7 +65,24 @@ describe('create-user-with-event.usecase', () => {
                     timezone: payload.timezone,
                 },
             })
-            expect(prisma.event.create).toHaveBeenCalled()
+
+            expect(prisma.event.createMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: payload.events.map((ev) => {
+                        const eventDate = DateTime.fromISO(ev.eventDate)
+                        return {
+                            userId: fakeUser.id,
+                            eventType: ev.eventType as EventTypes,
+                            eventDate: eventDate.toJSDate(),
+                            nextReminderAt: getNextAnnualReminderTime(
+                                eventDate.toJSDate(),
+                                'Asia/Jakarta',
+                                9
+                            ),
+                        }
+                    }),
+                })
+            )
         })
 
         test('propagates error from transaction', async () => {
@@ -80,8 +91,12 @@ describe('create-user-with-event.usecase', () => {
                 lastName: 'Doe',
                 email: 'jane.doe@example.com',
                 timezone: 'Asia/Jakarta',
-                eventDate: '2023-12-31',
-                eventType: EventType.BIRTHDAY,
+                events: [
+                    {
+                        eventDate: '2023-12-31',
+                        eventType: EventTypes.BIRTHDAY,
+                    },
+                ],
             }
             const transactionError = new Error('Transaction failed')
 
@@ -90,7 +105,6 @@ describe('create-user-with-event.usecase', () => {
             })
 
             const useCase = new CreateUserWithEventUseCase(prisma)
-
             await expect(useCase.execute(payload)).rejects.toThrow(
                 'Transaction failed'
             )
@@ -103,8 +117,12 @@ describe('create-user-with-event.usecase', () => {
             lastName: 'Doe',
             email: 'jane.doe@example.com',
             timezone: 'Asia/Jakarta',
-            eventDate: '2023-12-31',
-            eventType: EventType.BIRTHDAY,
+            events: [
+                {
+                    eventDate: '2023-12-31',
+                    eventType: EventTypes.BIRTHDAY,
+                },
+            ],
         }
 
         prisma.user.create.mockImplementation(() => {
@@ -114,7 +132,6 @@ describe('create-user-with-event.usecase', () => {
         prisma.$transaction.mockImplementation((callback) => callback(prisma))
 
         const useCase = new CreateUserWithEventUseCase(prisma)
-
         await expect(useCase.execute(payload)).rejects.toThrow(
             'User creation failed'
         )

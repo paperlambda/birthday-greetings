@@ -68,22 +68,23 @@ describe('user.repository', () => {
                 lastName: 'User',
                 timezone: 'UTC',
             }
-            prisma.user.findUniqueOrThrow.mockResolvedValueOnce(user)
+            prisma.user.findUnique.mockResolvedValueOnce(user)
             const userRepository = new UserRepository(prisma)
             const result = await userRepository.getById(1)
             expect(result).toStrictEqual(user)
-            expect(prisma.user.findUniqueOrThrow).toHaveBeenCalledWith({
+            expect(prisma.user.findUnique).toHaveBeenCalledWith({
                 where: { id: 1 },
             })
         })
 
-        test('throws error when user not found', async () => {
-            const notFoundError = new Error('No user found')
-            prisma.user.findUniqueOrThrow.mockRejectedValueOnce(notFoundError)
+        test('returns undefined when user not found', async () => {
+            prisma.user.findUnique.mockResolvedValueOnce(undefined)
             const userRepository = new UserRepository(prisma)
-            await expect(userRepository.getById(999)).rejects.toThrow(
-                'No user found'
-            )
+            const result = await userRepository.getById(999)
+            expect(result).toBeUndefined()
+            expect(prisma.user.findUnique).toHaveBeenCalledWith({
+                where: { id: 999 },
+            })
         })
     })
 

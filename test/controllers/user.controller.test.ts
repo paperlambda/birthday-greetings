@@ -36,8 +36,12 @@ describe('user.controller', () => {
             timezone: 'Asia/Jakarta',
             createdAt: new Date('2023-01-01T00:00:00.000Z').toISOString(),
             updatedAt: new Date('2023-01-01T00:00:00.000Z').toISOString(),
-            eventType: 'BIRTHDAY',
-            eventDate: '2023-12-31',
+            events: [
+                {
+                    eventType: 'BIRTHDAY',
+                    eventDate: '2023-12-31',
+                },
+            ],
         }
 
         test('creates user successfully', async () => {
