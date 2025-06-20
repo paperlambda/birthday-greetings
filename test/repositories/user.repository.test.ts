@@ -32,13 +32,13 @@ describe('user.repository', () => {
             }
             const duplicateError = new Prisma.PrismaClientKnownRequestError(
                 'Unique constraint failed',
-                { code: 'P2002', clientVersion: '6.10.1' }
+                { code: 'P2002', clientVersion: '1.0.0' }
             )
             prisma.user.create.mockRejectedValueOnce(duplicateError)
             const userRepository = new UserRepository(prisma)
 
             await expect(userRepository.create(newUser)).rejects.toThrow(
-                'User with this email already exists'
+                'User already exists'
             )
         })
 

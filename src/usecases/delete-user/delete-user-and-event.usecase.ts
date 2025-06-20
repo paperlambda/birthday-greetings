@@ -1,5 +1,6 @@
 import { UserRepository } from '@/repositories/user.repository'
 import { PrismaClient } from '@/generated/prisma'
+import { UserNotFoundError } from '@/errors'
 
 export class DeleteUserAndEventUsecase {
     constructor(private readonly prisma: PrismaClient) {}
@@ -8,7 +9,7 @@ export class DeleteUserAndEventUsecase {
         const userRepository = new UserRepository(this.prisma)
         const user = await userRepository.getById(userId)
         if (!user) {
-            throw new Error(`User not found`)
+            throw new UserNotFoundError()
         }
 
         // Cascade delete events associated with the user

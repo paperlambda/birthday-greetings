@@ -3,6 +3,8 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import userRoutes from '@/routes/user.routes'
+import errorHandler from '@/middlewares/error-handler.middleware'
+import notFoundHandler from '@/middlewares/not-found.middleware'
 
 const app = express()
 
@@ -13,11 +15,8 @@ app.use(express.urlencoded({ extended: true }))
 
 app.use('/api/users', userRoutes)
 
-app.use(/(.*)/, (req, res) => {
-    res.status(404).json({
-        success: false,
-        message: 'Not found',
-    })
-})
+app.use(/(.*)/, notFoundHandler)
+
+app.use(errorHandler)
 
 export default app

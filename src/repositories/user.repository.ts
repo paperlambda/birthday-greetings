@@ -1,5 +1,6 @@
 import { Prisma, User } from '@/generated/prisma'
 import { IUserRepository, PrismaClientTx } from '@/types'
+import { UserAlreadyExistsError } from '@/errors'
 
 export class UserRepository implements IUserRepository {
     private prisma: PrismaClientTx
@@ -16,11 +17,10 @@ export class UserRepository implements IUserRepository {
         } catch (err) {
             if (err instanceof Prisma.PrismaClientKnownRequestError) {
                 if (err.code === 'P2002') {
-                    throw new Error('User with this email already exists')
+                    throw new UserAlreadyExistsError()
                 }
             }
 
-            console.error('Error creating user:', err)
             throw err
         }
     }
