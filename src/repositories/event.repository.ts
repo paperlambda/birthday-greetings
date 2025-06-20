@@ -36,4 +36,24 @@ export class EventRepository implements IEventRepository {
             },
         })
     }
+
+    async update(
+        eventID: number,
+        payload: Prisma.EventUpdateInput
+    ): Promise<Event> {
+        return this.prisma.event.update({
+            where: {
+                id: eventID,
+            },
+            data: payload,
+        })
+    }
+
+    async getById(eventID: number): Promise<Event> {
+        return this.prisma.event.findUnique({
+            where: {
+                id: eventID,
+            },
+        })
+    }
 }

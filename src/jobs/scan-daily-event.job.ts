@@ -67,10 +67,9 @@ const worker = new Worker(
                 {
                     userId: event.userId,
                     eventId: event.id,
-                    eventType: event.eventType,
                 },
                 {
-                    // delay: diffUntilReminder,
+                    delay: diffUntilReminder,
                     deduplication: {
                         id: dedupId,
                         ttl: dedupSafeWindow,

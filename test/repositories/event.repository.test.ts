@@ -56,4 +56,63 @@ describe('EventRepository', () => {
             ).rejects.toThrow('Prisma createMany failure')
         })
     })
+    describe('getById', () => {
+        test('successfully retrieves an event by id', async () => {
+            const event = {
+                id: 1,
+                eventType: EventTypes.BIRTHDAY,
+                userId: 100,
+                eventDate: new Date('1990-01-01'),
+                nextReminderAt: new Date('2024-01-01'),
+            }
+            prisma.event.findUnique.mockResolvedValueOnce(event)
+            const eventRepository = new EventRepository(prisma)
+            const result = await eventRepository.getById(1)
+            expect(result).toStrictEqual(event)
+            expect(prisma.event.findUnique).toHaveBeenCalledWith({
+                where: { id: 1 },
+            })
+        })
+
+        test('returns null when event not found', async () => {
+            prisma.event.findUnique.mockResolvedValueOnce(null)
+            const eventRepository = new EventRepository(prisma)
+            const result = await eventRepository.getById(999)
+            expect(result).toBeNull()
+            expect(prisma.event.findUnique).toHaveBeenCalledWith({
+                where: { id: 999 },
+            })
+        })
+    })
+
+    describe('update', () => {
+        test('successfully updates an event', async () => {
+            const updatedEvent = {
+                id: 1,
+                eventType: EventTypes.BIRTHDAY,
+                userId: 100,
+                eventDate: new Date('1990-01-01'),
+                nextReminderAt: new Date('2024-01-01'),
+            }
+            const payload = { eventDate: new Date('1990-01-02') }
+            prisma.event.update.mockResolvedValueOnce(updatedEvent)
+            const eventRepository = new EventRepository(prisma)
+            const result = await eventRepository.update(1, payload)
+            expect(result).toStrictEqual(updatedEvent)
+            expect(prisma.event.update).toHaveBeenCalledWith({
+                where: { id: 1 },
+                data: payload,
+            })
+        })
+
+        test('throws error when update fails', async () => {
+            const payload = { eventDate: new Date('1990-01-02') }
+            const updateError = new Error('Update failed')
+            prisma.event.update.mockRejectedValueOnce(updateError)
+            const eventRepository = new EventRepository(prisma)
+            await expect(eventRepository.update(1, payload)).rejects.toThrow(
+                'Update failed'
+            )
+        })
+    })
 })

@@ -4,6 +4,7 @@ import { UserRepository } from '@/repositories/user.repository'
 import { prisma } from '@/config/database'
 import { redis } from '@/config/redis'
 import { EventRepository } from '@/repositories/event.repository'
+import { getNextAnnualReminderTime } from '@/utils/get-next-annual-reminder-time'
 
 const worker = new Worker(
     sendEventEmailQueueName,
@@ -17,9 +18,16 @@ const worker = new Worker(
             return
         }
 
+        const eventRepository = new EventRepository(prisma)
+        const event = await eventRepository.getById(job.data.eventId)
+        if (!event) {
+            console.error(`Event with ID ${job.data.userId} not found`)
+            return
+        }
+
         const body = {
             email: user.email,
-            message: `Hello ${user.firstName} ${user.lastName}, it's your ${job.data.eventType}!`,
+            message: `Hello ${user.firstName} ${user.lastName}, it's your ${event.eventType}!`,
         }
 
         const response = await fetch(
@@ -38,7 +46,13 @@ const worker = new Worker(
 
         console.log(`Email sent for user ID ${job.data.userId}`)
 
-        //     TODO: update next reminder
+        await eventRepository.update(job.data.eventId, {
+            nextReminderAt: getNextAnnualReminderTime(
+                event.nextReminderAt,
+                user.timezone,
+                parseInt(process.env.APP_REMINDER_HOUR) || 9
+            ),
+        })
     },
     { connection: redis }
 )
