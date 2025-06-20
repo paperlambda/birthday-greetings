@@ -4,30 +4,54 @@
     "description": "Birthday Greetings",
     "main": "dist/index.js",
     "scripts": {
-        "dev": "./scripts/run.sh",
-        "dev-server": "nodemon",
-        "build": "tsc"
+        "generate": "npx prisma generate",
+        "dev": "./scripts/dev.sh",
+        "dev-server": "npm run generate && nodemon src/server.ts",
+        "test": "vitest"
     },
     "author": "",
     "license": "MIT",
+    "nodemonConfig": {
+        "ignore": [
+            "**/*.test.ts",
+            "**/*.spec.ts",
+            ".git",
+            "node_modules"
+        ],
+        "watch": [
+            "src"
+        ],
+        "exec": "node -r tsconfig-paths/register -r ts-node/register ./src/server.ts",
+        "ext": "ts"
+    },
     "dependencies": {
+        "@prisma/client": "^6.10.1",
+        "cors": "^2.8.5",
         "dotenv": "^16.5.0",
-        "drizzle-orm": "^0.44.2",
         "express": "^5.1.0",
-        "pg": "^8.16.1"
+        "helmet": "^8.1.0",
+        "luxon": "^3.6.1",
+        "pg": "^8.16.1",
+        "zod": "^3.25.67"
     },
     "devDependencies": {
         "@eslint/js": "^9.29.0",
+        "@types/cors": "^2.8.19",
         "@types/express": "^5.0.3",
+        "@types/luxon": "^3.6.2",
         "@types/node": "^24.0.3",
         "@types/pg": "^8.15.4",
-        "drizzle-kit": "^0.31.1",
         "eslint": "^9.29.0",
         "eslint-config-prettier": "^10.1.5",
         "nodemon": "^3.1.10",
         "prettier": "3.5.3",
+        "prisma": "^6.10.1",
+        "ts-node": "^10.9.2",
+        "tsconfig-paths": "^4.2.0",
         "tsx": "^4.20.3",
         "typescript": "^5.8.3",
-        "typescript-eslint": "^8.34.1"
+        "typescript-eslint": "^8.34.1",
+        "vitest": "^3.2.4",
+        "vitest-mock-extended": "^3.1.0"
     }
 }
