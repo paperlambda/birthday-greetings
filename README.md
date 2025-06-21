@@ -32,13 +32,13 @@ npm run dev-server
 
 To run background jobs, use npm scripts
 ```
-    "scripts": {
-        "job:scan-daily-event": "npm run generate && tsx ./src/jobs/scan-daily-event.job.ts",
-        "job:send-event-email": "npm run generate && tsx ./src/jobs/send-event-email.job.ts"
-    }
+ "scripts": {
+     "job:scan-daily-event": "npm run generate && tsx ./src/jobs/scan-daily-event.job.ts",
+     "job:send-event-email": "npm run generate && tsx ./src/jobs/send-event-email.job.ts"
+ }
 ```
 ```bash
-   npm run job:send-event-email
+npm run job:send-event-email
 ```
 
 ### Production
