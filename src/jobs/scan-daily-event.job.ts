@@ -23,9 +23,7 @@ async function addScanDailyEventJob() {
     await scanDailyEventQueue.upsertJobScheduler(
         'scan-daily-event-scheduler',
         {
-            // Uncomment the following line to schedule the job daily at 5 AM
-            // pattern: '0 0 5 * *',
-            every: 5000,
+            pattern: '0 0 * * *',
         },
         {
             name: 'scan-daily-event-job',
